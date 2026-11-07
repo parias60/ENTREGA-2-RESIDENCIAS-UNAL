@@ -31,10 +31,12 @@ public class Residencia {
     }
 
     public void asignarEstudiante(String idEstudiante) {
+        //FALTA IMPLEMENTAR
         this.idEstudiante = idEstudiante;
     }
 
     public void liberar() {
+        //FALTA IMPLEMENTAR
         this.idEstudiante = null;
     }
 }

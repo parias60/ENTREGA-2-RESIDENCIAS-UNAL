@@ -3,7 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
 package residenciasunal;
-
+import gestion.GestorSistema;
+import interfaz.MenuPrincipal;
 /**
  *
  * @author danie
@@ -14,7 +15,12 @@ public class ResidenciasUNAL {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-         System.out.println("   SISTEMA DE RESIDENCIAS UNAL");
+        
+        GestorSistema gestor = new GestorSistema();
+
+        MenuPrincipal menu = new MenuPrincipal(gestor);
+
+        menu.iniciar();
     }
     
 }
