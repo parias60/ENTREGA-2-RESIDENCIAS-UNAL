@@ -9,37 +9,97 @@ import modelos.Estudiante;
  *
  * @author danie
  */
+
 public class AVLestudiantes {
-      private class Nodo {
+
+    // Nodo interno del arbol
+    private class Nodo {
         Estudiante estudiante;
         Nodo izquierdo;
         Nodo derecho;
-        int altura;
 
-    public Nodo(Estudiante estudiante) {
+        public Nodo(Estudiante estudiante) {
             this.estudiante = estudiante;
             this.izquierdo = null;
             this.derecho = null;
-            this.altura = 1;
         }
     }
 
     private Nodo raiz;
-    private int tamanio;
 
     public AVLestudiantes() {
         raiz = null;
-        tamanio = 0;
     }
 
+    // INSERTAR
     public boolean insertar(Estudiante estudiante) {
-        // Implementacion pendiente
-        return false;
+
+        if (estudiante == null || estudiante.getId() == null) {
+            return false;
+        }
+
+        boolean[] insertado = {false};
+
+        raiz = insertarRecursivo(raiz, estudiante, insertado);
+
+        return insertado[0];
     }
 
+    private Nodo insertarRecursivo(
+            Nodo actual,
+            Estudiante estudiante,
+            boolean[] insertado) {
+
+        if (actual == null) {
+            insertado[0] = true;
+            return new Nodo(estudiante);
+        }
+
+        int comparacion = estudiante.getId().compareTo(
+                actual.estudiante.getId());
+
+        if (comparacion < 0) {
+            actual.izquierdo = insertarRecursivo(
+                    actual.izquierdo, estudiante, insertado);
+
+        } else if (comparacion > 0) {
+            actual.derecho = insertarRecursivo(
+                    actual.derecho, estudiante, insertado);
+
+        } else {
+            return actual; // ID duplicado
+        }
+
+        return actual;
+    }
+
+    // BUSCAR
     public Estudiante buscar(String id) {
-        // Implementacion pendiente
-        return null;
+
+        if (id == null) {
+            return null;
+        }
+
+        return buscarRecursivo(raiz, id);
+    }
+
+    private Estudiante buscarRecursivo(Nodo actual, String id) {
+
+        if (actual == null) {
+            return null;
+        }
+
+        int comparacion = id.compareTo(actual.estudiante.getId());
+
+        if (comparacion == 0) {
+            return actual.estudiante;
+        }
+
+        if (comparacion < 0) {
+            return buscarRecursivo(actual.izquierdo, id);
+        }
+
+        return buscarRecursivo(actual.derecho, id);
     }
 
     public boolean eliminar(String id) {
@@ -58,7 +118,7 @@ public class AVLestudiantes {
     }
 
     public int obtenerTamanio() {
-        return tamanio;
+        return obtenerTamanio();
     }
 
     // Metodos auxiliares privados:
@@ -72,4 +132,4 @@ public class AVLestudiantes {
     // eliminarRecursivo()
     // recorrerEnOrden()
 
-}
+ }
