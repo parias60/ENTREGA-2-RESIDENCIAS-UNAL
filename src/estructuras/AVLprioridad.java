@@ -50,8 +50,15 @@ public class AVLprioridad {
             int puntajeAnterior,
             String id
     ) {
-        // Implementacion pendiente
-        return false;
+        if (id == null || raiz == null) {
+            return false;
+        }
+        boolean[] eliminado = {false};
+        raiz = eliminarRecursivo(raiz, puntajeAnterior, id, eliminado);
+        if (eliminado[0]) {
+            tamanio--;
+        }
+        return eliminado[0];
     }
 
     public Estudiante obtenerMayorPrioridad() {
@@ -62,8 +69,12 @@ public class AVLprioridad {
     }
 
     public Estudiante extraerMayorPrioridad() {
-        // Implementacion pendiente
-        return null;
+        Estudiante prioritario = obtenerMayorPrioridad();
+        if (prioritario == null) {
+            return null;
+        }
+        eliminar(prioritario.getPuntajeSocioeconomico(), prioritario.getId());
+        return prioritario;
     }
 
     public Estudiante[] obtenerEnOrden() {
@@ -174,6 +185,42 @@ public class AVLprioridad {
         } else {
             insertado[0] = false;
             return actual;
+        }
+
+        return balancear(actual);
+    }
+
+    private Nodo eliminarRecursivo(Nodo actual, int puntaje, String id, boolean[] eliminado) {
+        if (actual == null) {
+            return null;
+        }
+
+        int cmp = comparar(
+                puntaje, id,
+                actual.estudiante.getPuntajeSocioeconomico(), actual.estudiante.getId()
+        );
+
+        if (cmp < 0) {
+            actual.izquierdo = eliminarRecursivo(actual.izquierdo, puntaje, id, eliminado);
+        } else if (cmp > 0) {
+            actual.derecho = eliminarRecursivo(actual.derecho, puntaje, id, eliminado);
+        } else {
+            eliminado[0] = true;
+
+            if (actual.izquierdo == null || actual.derecho == null) {
+                return (actual.izquierdo != null) ? actual.izquierdo : actual.derecho;
+            }
+
+            Nodo sucesor = obtenerMinimo(actual.derecho);
+            actual.estudiante = sucesor.estudiante;
+
+            boolean[] dummy = {false};
+            actual.derecho = eliminarRecursivo(
+                    actual.derecho,
+                    sucesor.estudiante.getPuntajeSocioeconomico(),
+                    sucesor.estudiante.getId(),
+                    dummy
+            );
         }
 
         return balancear(actual);
