@@ -1,71 +1,37 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package gestion;
-import modelos.Estudiante;
-import estructuras.AVLestudiantes;
-import estructuras.AVLprioridad;
-/**
- *
- * @author danie
- */
-public class GestorEstudiantes {
-    private AVLestudiantes arbolEstudiantes;
-    private AVLprioridad arbolPrioridad;
 
-    public GestorEstudiantes() {
-        this.arbolEstudiantes = new AVLestudiantes();
-        this.arbolPrioridad = new AVLprioridad();
-    }
+import estructuras.AVLEstudiantes;
+import estructuras.AVLPrioridad;
+import modelos.Estudiante;
+
+/** Administra los indices por identificador y por prioridad de espera. */
+public class GestorEstudiantes {
+
+    private final AVLEstudiantes arbolEstudiantes = new AVLEstudiantes();
+    private final AVLPrioridad arbolPrioridad = new AVLPrioridad();
 
     public boolean registrar(Estudiante estudiante) {
-        if (estudiante == null || estudiante.getId() == null) {
-            return false;
-        }
-        
-        return arbolEstudiantes.insertar(estudiante);
+        return estudiante != null && estudiante.getId() != null
+                && arbolEstudiantes.insertar(estudiante);
     }
 
     public Estudiante buscar(String id) {
-        if (id == null) {
-            return null;
-        }
-        return arbolEstudiantes.buscar(id);
+        return id == null ? null : arbolEstudiantes.buscar(id);
     }
 
+    /** Elimina del indice por ID. GestorSistema coordina la espera y el cupo. */
     public boolean eliminarRegistro(String id) {
-        if (id == null) {
-            return false;
-        }
-        
-        // si el estudiante existe para saber si estaba en espera también
-        Estudiante estudiante = arbolEstudiantes.buscar(id);
-        if (estudiante == null) {
-            return false;
-        }
-
-        // Si el estudiante estaba en espera (no tiene residencia asignada), 
-        // quiarlo del de prioridad
-        if (!estudiante.tieneResidencia()) {
-            arbolPrioridad.eliminar(estudiante.getPuntajeSocioeconomico(), id);
-        }
-
-        return arbolEstudiantes.eliminar(id);
+        return id != null && arbolEstudiantes.eliminar(id);
     }
 
     public boolean agregarAEspera(Estudiante estudiante) {
-        if (estudiante == null) {
-            return false;
-        }
-        return arbolPrioridad.insertar(estudiante);
+        return estudiante != null && !estudiante.tieneResidencia()
+                && buscar(estudiante.getId()) == estudiante
+                && arbolPrioridad.insertar(estudiante);
     }
 
-    public boolean quitarDeEspera(int puntajeAnterior,String id){
-        if (id == null) {
-            return false;
-        }
-        return arbolPrioridad.eliminar(puntajeAnterior, id);
+    public boolean quitarDeEspera(int puntajeAnterior, String id) {
+        return id != null && arbolPrioridad.eliminar(puntajeAnterior, id);
     }
 
     public Estudiante obtenerSiguienteEnEspera() {
@@ -76,29 +42,27 @@ public class GestorEstudiantes {
         return arbolPrioridad.extraerMayorPrioridad();
     }
 
-    public boolean actualizarPuntajeEnEspera(String id,int nuevoPuntaje) {
-        if (id == null) {
-            return false;
-        }
-
-        Estudiante estudiante = arbolEstudiantes.buscar(id);
+    public boolean actualizarPuntajeEnEspera(String id, int nuevoPuntaje) {
+        Estudiante estudiante = buscar(id);
         if (estudiante == null || estudiante.tieneResidencia()) {
-            return false; // No existe o ya tiene residencia (por lo tanto no está en espera)
-        }
-
-        int puntajeAnterior = estudiante.getPuntajeSocioeconomico();
-
-        // 1. Eliminar del árbol de prioridad usando el puntaje anterior
-        boolean eliminadoDeEspera = arbolPrioridad.eliminar(puntajeAnterior, id);
-        if (!eliminadoDeEspera) {
             return false;
         }
+        int anterior = estudiante.getPuntajeSocioeconomico();
 
-        // 2. Modificar el puntaje en el objeto estudiante
+        // No cambiar el objeto mientras la clave anterior siga en el AVL.
+        if (!quitarDeEspera(anterior, id)) {
+            return false;
+        }
         estudiante.setPuntajeSocioeconomico(nuevoPuntaje);
+        if (agregarAEspera(estudiante)) {
+            return true;
+        }
 
-        // 3. Volver a insertarlo en el árbol de prioridad con su nueva clave
-        return arbolPrioridad.insertar(estudiante);
+        estudiante.setPuntajeSocioeconomico(anterior);
+        if (!agregarAEspera(estudiante)) {
+            throw new IllegalStateException("No se pudo restaurar la lista de espera.");
+        }
+        throw new IllegalStateException("El AVL rechazo la nueva clave de " + id + ".");
     }
 
     public Estudiante[] obtenerTodos() {
@@ -106,7 +70,6 @@ public class GestorEstudiantes {
     }
 
     public Estudiante[] obtenerListaEspera() {
-        // Implementacion pendiente
         return arbolPrioridad.obtenerEnOrden();
     }
 }
