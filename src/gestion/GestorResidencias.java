@@ -23,16 +23,27 @@ public class GestorResidencias {
 
     for (int i = 0; i < cantidadCupos; i++) {
         residencias[i] = new Residencia(i + 1);
+        }
     }
-    }
+
     public Residencia buscarCupoDisponible() {
-        // Implementacion pendiente
-        return null;
+    for (Residencia residencia : residencias) {
+        if (residencia.estaDisponible()) {
+            return residencia;
+        }
+    }
+
+    return null;
     }
 
     public Residencia buscarPorId(int id) {
-        // Implementacion pendiente
-        return null;
+    for (Residencia residencia : residencias) {
+        if (residencia.getId() == id) {
+            return residencia;
+        }
+    }
+
+    return null;
     }
 
     public boolean asignar(
