@@ -38,6 +38,9 @@ public class AVLestudiantes {
         tamanio = 0;
     }
     
+    
+    //METODOS PARA LA ALTURA
+    
      private int altura(Nodo n) {
          if(n == null){
              return 0;
@@ -67,6 +70,56 @@ public class AVLestudiantes {
             n.altura = Math.max(altura(n.izquierdo), altura(n.derecho))+1; //la altura maxima de sus hijos +1
         }
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    //METODOS ROTACIONES CUANDO DESBALANCEADO
+    
+    private Nodo rotarDerecha(Nodo y) {
+        
+        /*
+                y                       x
+               x            ->        l   y
+              l   subtree              subtree
+        */
+        
+        Nodo x = y.izquierdo;
+        Nodo subtree = x.derecho;
+
+        x.derecho = y;
+        y.izquierdo = subtree;
+
+        actualizarAltura(y);
+        actualizarAltura(x);
+
+        return x;
+    }
+
+    private Nodo rotarIzquierda(Nodo x) {
+        Nodo y = x.derecho;
+        Nodo subtree = y.izquierdo;
+
+        y.izquierdo = x;
+        x.derecho = subtree;
+
+        actualizarAltura(x);
+        actualizarAltura(y);
+
+        return y;
+    }
+    
+    
+    
+    
     public boolean insertar(Estudiante estudiante) {
         // Implementacion pendiente
         return false;
