@@ -35,8 +35,15 @@ public class AVLprioridad {
     }
 
     public boolean insertar(Estudiante estudiante) {
-        // Implementacion pendiente
-        return false;
+        if (estudiante == null || estudiante.getId() == null) {
+            return false;
+        }
+        boolean[] insertado = {false};
+        raiz = insertarRecursivo(raiz, estudiante, insertado);
+        if (insertado[0]) {
+            tamanio++;
+        }
+        return insertado[0];
     }
 
     public boolean eliminar(
@@ -48,8 +55,10 @@ public class AVLprioridad {
     }
 
     public Estudiante obtenerMayorPrioridad() {
-        // Implementacion pendiente
-        return null;
+        if (raiz == null) {
+            return null;
+        }
+        return obtenerMinimo(raiz).estudiante;
     }
 
     public Estudiante extraerMayorPrioridad() {
@@ -58,8 +67,10 @@ public class AVLprioridad {
     }
 
     public Estudiante[] obtenerEnOrden() {
-        // Implementacion pendiente
-        return new Estudiante[0];
+        Estudiante[] resultado = new Estudiante[tamanio];
+        int[] indice = {0};
+        recorrerEnOrden(raiz, resultado, indice);
+        return resultado;
     }
 
     public int obtenerTamanio() {
@@ -127,25 +138,60 @@ public class AVLprioridad {
         actualizarAltura(nodo);
         int fe = factorEquilibrio(nodo);
 
-        // Rotacion simple derecha (LL)
         if (fe > 1 && factorEquilibrio(nodo.izquierdo) >= 0) {
             return rotarDerecha(nodo);
         }
-        // Rotacion doble izquierda-derecha (LR)
         if (fe > 1 && factorEquilibrio(nodo.izquierdo) < 0) {
             nodo.izquierdo = rotarIzquierda(nodo.izquierdo);
             return rotarDerecha(nodo);
         }
-        // Rotacion simple izquierda (RR)
         if (fe < -1 && factorEquilibrio(nodo.derecho) <= 0) {
             return rotarIzquierda(nodo);
         }
-        // Rotacion doble derecha-izquierda (RL)
         if (fe < -1 && factorEquilibrio(nodo.derecho) > 0) {
             nodo.derecho = rotarDerecha(nodo.derecho);
             return rotarIzquierda(nodo);
         }
 
         return nodo;
+    }
+
+    private Nodo insertarRecursivo(Nodo actual, Estudiante estudiante, boolean[] insertado) {
+        if (actual == null) {
+            insertado[0] = true;
+            return new Nodo(estudiante);
+        }
+
+        int cmp = comparar(
+                estudiante.getPuntajeSocioeconomico(), estudiante.getId(),
+                actual.estudiante.getPuntajeSocioeconomico(), actual.estudiante.getId()
+        );
+
+        if (cmp < 0) {
+            actual.izquierdo = insertarRecursivo(actual.izquierdo, estudiante, insertado);
+        } else if (cmp > 0) {
+            actual.derecho = insertarRecursivo(actual.derecho, estudiante, insertado);
+        } else {
+            insertado[0] = false;
+            return actual;
+        }
+
+        return balancear(actual);
+    }
+
+    private Nodo obtenerMinimo(Nodo nodo) {
+        Nodo actual = nodo;
+        while (actual.izquierdo != null) {
+            actual = actual.izquierdo;
+        }
+        return actual;
+    }
+
+    private void recorrerEnOrden(Nodo actual, Estudiante[] resultado, int[] indice) {
+        if (actual != null) {
+            recorrerEnOrden(actual.izquierdo, resultado, indice);
+            resultado[indice[0]++] = actual.estudiante;
+            recorrerEnOrden(actual.derecho, resultado, indice);
+        }
     }
 }
