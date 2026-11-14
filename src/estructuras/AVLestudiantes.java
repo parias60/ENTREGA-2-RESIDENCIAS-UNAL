@@ -128,7 +128,7 @@ public class AVLestudiantes {
     
     //MODIFICACION/BUSQUEDA EN EL ARBOL
     
-    public boolean insert(Estudiante estudiante) {
+    public boolean insertar(Estudiante estudiante) {
         if (estudiante == null || estudiante.getId() == null){ return false;}
         if (contiene(estudiante.getId())) {return false;}
         
