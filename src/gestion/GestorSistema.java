@@ -93,7 +93,7 @@ public class GestorSistema {
             return false;
         }
 
-        Residencia residencia = buscarCupo(estudiante.getIdResidencia());
+        Residencia residencia = buscarCupo(Integer.parseInt(estudiante.getIdResidencia()));
         if (residencia == null || !id.equals(residencia.getIdEstudiante())
                 || !gestorResidencias.liberar(residencia.getId())) {
             return false;
@@ -204,7 +204,7 @@ public class GestorSistema {
                 || !gestorResidencias.asignar(residencia.getId(), estudiante.getId())) {
             return false;
         }
-        estudiante.setIdResidencia(residencia.getId());
+        estudiante.setIdResidencia(""+residencia.getId());
         return true;
     }
 
