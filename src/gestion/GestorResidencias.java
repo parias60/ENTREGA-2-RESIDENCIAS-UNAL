@@ -13,9 +13,18 @@ public class GestorResidencias {
     private Residencia[] residencias;
 
     public GestorResidencias(int cantidadCupos) {
-        // Inicializar arreglo de residencias
+    if (cantidadCupos < 0) {
+        throw new IllegalArgumentException(
+            "La cantidad de cupos no puede ser negativa."
+        );
     }
 
+    residencias = new Residencia[cantidadCupos];
+
+    for (int i = 0; i < cantidadCupos; i++) {
+        residencias[i] = new Residencia(i + 1);
+    }
+    }
     public Residencia buscarCupoDisponible() {
         // Implementacion pendiente
         return null;
