@@ -208,7 +208,7 @@ public class AVLestudiantes {
     private Nodo eliminarRec(Nodo n, String id) {
         if(n == null){return null;}
         
-        int comparacion = id.compareTo(raiz.estudiante.getId());
+        int comparacion = id.compareTo(n.estudiante.getId());
         if (comparacion < 0) {
             n.izquierdo = eliminarRec(n.izquierdo, id);
         } else if (comparacion > 0) {
@@ -222,7 +222,7 @@ public class AVLestudiantes {
                     n = temp;
                 }
             } else {
-                Nodo temp = obtenerMinimoNodo(n.derecho);
+                Nodo temp = obtenerMinimoNodo(n.derecho); //2 hijos, reemplazar con el menor del subarbol derecho
                 n.estudiante = temp.estudiante;
                 n.derecho = eliminarRec(n.derecho, temp.estudiante.getId());
             }
@@ -279,8 +279,18 @@ public class AVLestudiantes {
     }
 
     public Estudiante[] obtenerEnOrden() {
-        // Implementacion pendiente
-        return new Estudiante[0];
+        Estudiante[] arr = new Estudiante[tamanio]; //cantidad de elementos en el arbol
+        llenaraux(raiz, new int[]{0}, arr);
+        return arr;
+    }
+    
+    private void llenaraux(Nodo root, int[] indices, Estudiante[] arreglo){ //MENCIONAR METODO LLENADO por recorrido INORDER
+        if(root != null){
+            llenaraux(root.izquierdo, indices, arreglo);
+            arreglo[indices[0]] = root.estudiante;
+            indices[0]++;
+            llenaraux(root.derecho, indices, arreglo);
+        }
     }
 
     public int obtenerTamanio() {
