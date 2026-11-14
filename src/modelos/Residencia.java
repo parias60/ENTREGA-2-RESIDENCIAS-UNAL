@@ -43,8 +43,12 @@ public class Residencia {
     return true;
     }
 
-    public void liberar() {
-        //FALTA IMPLEMENTAR
-        this.idEstudiante = null;
+    public boolean liberar() {
+    if (estaDisponible()) {
+        return false;
+    }
+
+    this.idEstudiante = null;
+    return true;
     }
 }
