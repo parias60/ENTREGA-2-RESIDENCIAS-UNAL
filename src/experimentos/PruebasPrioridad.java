@@ -109,31 +109,38 @@ public class PruebasPrioridad {
             // PRUEBA 4: ELIMINACIÓN
             // --------------------------------
 
-            AVLprioridad arbolEliminacion =
-                    construirArbol(estudiantes);
+            // --------------------------------
+// PRUEBA 4: ELIMINACIÓN
+// --------------------------------
 
-            inicio = System.nanoTime();
+AVLprioridad arbolEliminacion =
+        construirArbol(estudiantes);
 
-            for (Estudiante estudiante : estudiantes) {
+boolean eliminacionCorrecta = true;
 
-                correcto = arbolEliminacion.eliminar(
-                        estudiante.getPuntajeSocioeconomico(),
-                        estudiante.getId()
-                );
+inicio = System.nanoTime();
 
-                Resultados.conservar(correcto);
-            }
+for (Estudiante estudiante : estudiantes) {
 
-            fin = System.nanoTime();
-
-            resultados.agregar(
-                    "AVLPrioridad",
-                    "Eliminacion",
-                    n,
-                    rep,
-                    n,
-                    fin - inicio
+    eliminacionCorrecta &=
+            arbolEliminacion.eliminar(
+                    estudiante.getPuntajeSocioeconomico(),
+                    estudiante.getId()
             );
+}
+
+fin = System.nanoTime();
+
+resultados.agregar(
+        "AVLPrioridad",
+        "Eliminacion",
+        n,
+        rep,
+        n,
+        fin - inicio
+);
+
+Resultados.conservar(eliminacionCorrecta);
 
             // --------------------------------
             // PRUEBA 5: RECORRIDO
