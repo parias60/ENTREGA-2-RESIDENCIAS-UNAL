@@ -1,3 +1,7 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package interfaz;
 
 import gestion.GestorSistema;
@@ -27,7 +31,7 @@ public class MenuPrincipal {
     public void iniciar() {
         while (true) {
             mostrarMenu();
-            Integer opcion = leerEntero("Opción: ");
+            Integer opcion = leerEntero("Opcion: ");
             if (opcion == null) {
                 salida.println("\nFin de la entrada. Hasta luego.");
                 return;
@@ -48,28 +52,30 @@ public class MenuPrincipal {
                     salida.println("Hasta luego.");
                     return;
                 default:
-                    salida.println("Opción inválida. Elige un número del 1 al 12.");
+                    salida.println("Opcion invalida, debe elegir una opcion valida");
             }
+            salida.println("\n--------------------------------------------------\n");
         }
     }
 
     private void mostrarMenu() {
-        salida.println("\n=== RESIDENCIAS UNAL ===");
+        salida.println("=== RESIDENCIAS UNAL ===");
         salida.println(" 1. Registrar estudiante");
-        salida.println(" 2. Buscar estudiante");
-        salida.println(" 3. Modificar información del estudiante (nombre)");
+        salida.println(" 2. Consultar estudiante por ID");
+        salida.println(" 3. Modificar nombre de estudiante");
         salida.println(" 4. Modificar puntaje socioeconómico");
         salida.println(" 5. Eliminar estudiante");
         salida.println(" 6. Mostrar todos los estudiantes");
         salida.println(" 7. Mostrar lista de espera");
         salida.println(" 8. Mostrar estudiantes residentes");
-        salida.println(" 9. Mostrar cupos disponibles");
+        salida.println(" 9. Mostrar estado de cupos");
         salida.println("10. Liberar residencia");
-        salida.println("11. Mostrar estadísticas del sistema");
+        salida.println("11. Mostrar estadisticas del sistema");
         salida.println("12. Salir");
     }
 
     private void registrarEstudiante() {
+        salida.println("--- REGISTRO DE NUEVO ESTUDIANTE ---");
         String id = leerTexto("ID del estudiante: ");
         if (id == null) {
             return;
@@ -78,119 +84,175 @@ public class MenuPrincipal {
         if (nombre == null) {
             return;
         }
-        Integer puntaje = leerEntero("Puntaje socioeconómico: ");
-        if (puntaje == null) {
+        Integer puntaje = leerEntero("Puntaje socioeconómico (mayor o igual a 0): ");
+        if (puntaje == null || puntaje < 0) {
+            salida.println("ERROR PUNTAJE NO VALIDO.");
             return;
         }
+
         Estudiante estudiante = new Estudiante(id, nombre, puntaje);
-        if (!gestor.registrarEstudiante(estudiante)) {
-            salida.println("No se registró el estudiante. Verifica si el ID ya existe.");
-            return;
-        }
-        if (estudiante.tieneResidencia()) {
-            salida.println("Estudiante registrado. Cupo asignado: " + estudiante.getIdResidencia());
+        boolean exito = gestor.registrarEstudiante(estudiante);
+
+        if (exito) {
+            salida.println("\n[Éxito] Estudiante registrado correctamente.");
+            if (estudiante.tieneResidencia()) {
+                salida.println("-> Se le ha asignado el cupo de residencia #" + estudiante.getIdResidencia());
+            } else {
+                salida.println("-> No hay cupos disponibles se agregara a la lista de espera.");
+            }
         } else {
-            salida.println("Estudiante registrado en la lista de espera.");
+            salida.println("\n No se pudo registrar. Ya existe un estudiante con el ID '" + id + "'.");
         }
     }
 
     private void consultarEstudiante() {
-        String id = leerTexto("ID del estudiante: ");
+        salida.println("--- CONSULTAR ESTUDIANTE ---");
+        String id = leerTexto("ID del estudiante a buscar: ");
         if (id == null) {
             return;
         }
         Estudiante estudiante = gestor.buscarEstudiante(id);
         if (estudiante == null) {
-            salida.println("No existe un estudiante con ese ID.");
+            salida.println("\n[Aviso] No se encontró ningún estudiante con el ID '" + id + "'.");
         } else {
-            imprimirEstudiante(estudiante);
+            salida.println("\n[Estudiante Encontrado]");
+            salida.println("ID: " + estudiante.getId());
+            salida.println("Nombre: " + estudiante.getNombre());
+            salida.println("Puntaje Socioeconómico: " + estudiante.getPuntajeSocioeconomico());
+            if (estudiante.tieneResidencia()) {
+                salida.println("Estado: Residente (Cupo #" + estudiante.getIdResidencia() + ")");
+            } else {
+                salida.println("Estado: En lista de espera");
+            }
         }
     }
 
     private void modificarEstudiante() {
+        salida.println("--- MODIFICAR NOMBRE DE ESTUDIANTE ---");
         String id = leerTexto("ID del estudiante: ");
         if (id == null) {
+            return;
+        }
+        Estudiante e = gestor.buscarEstudiante(id);
+        if (e == null) {
+            salida.println("\nEl estudiante con ID '" + id + "' no existe.");
             return;
         }
         String nombre = leerTexto("Nuevo nombre: ");
         if (nombre != null) {
             salida.println(gestor.modificarNombre(id, nombre)
-                    ? "Nombre actualizado." : "No existe un estudiante con ese ID.");
+                    ? "\nNombre actualizado." : "\nNo se pudo actualizar el nombre.");
         }
     }
 
     private void modificarPuntaje() {
+        salida.println("--- MODIFICAR PUNTAJE SOCIOECONÓMICO ---");
         String id = leerTexto("ID del estudiante: ");
         if (id == null) {
             return;
         }
-        Integer puntaje = leerEntero("Nuevo puntaje: ");
-        if (puntaje != null) {
+        Estudiante e = gestor.buscarEstudiante(id);
+        if (e == null) {
+            salida.println("\nEl estudiante con ID '" + id + "' no existe.");
+            return;
+        }
+        Integer puntaje = leerEntero("Nuevo puntaje socioeconómico: ");
+        if (puntaje != null && puntaje >= 0) {
             salida.println(gestor.modificarPuntaje(id, puntaje)
-                    ? "Puntaje actualizado." : "No existe un estudiante con ese ID.");
+                    ? "\nPuntaje actualizado correctamente y reordenado en el sistema." : "\nNo se pudo actualizar el puntaje.");
+        } else {
+            salida.println("El puntaje ingresado no es válido.");
         }
     }
 
     private void eliminarEstudiante() {
-        String id = leerTexto("ID del estudiante: ");
+        salida.println("--- ELIMINAR ESTUDIANTE ---");
+        String id = leerTexto("ID del estudiante a eliminar: ");
         if (id != null) {
-            salida.println(gestor.eliminarEstudiante(id)
-                    ? "Estudiante eliminado."
-                    : "No se pudo eliminar el estudiante. Verifica el ID.");
+            boolean eliminado = gestor.eliminarEstudiante(id);
+            if (eliminado) {
+                salida.println("\nEstudiante eliminado del sistema. Si ocupaba residencia, esta ha sido liberada y reasignada.");
+            } else {
+                salida.println("\n No se pudo eliminar. el ID '" + id + "' no existe.");
+            }
         }
     }
 
     private void mostrarTodos() {
-        mostrarEstudiantes("Estudiantes registrados", gestor.obtenerTodos());
+        salida.println("--- LISTA GENERAL DE ESTUDIANTES (Ordenados por ID) ---");
+        Estudiante[] estudiantes = gestor.obtenerTodos();
+        if (estudiantes.length == 0) {
+            salida.println("No hay estudiantes registrados en el sistema.");
+            return;
+        }
+        for (Estudiante estudiante : estudiantes) {
+            String estado = estudiante.tieneResidencia() 
+                    ? "Residente (Cupo #" + estudiante.getIdResidencia() + ")" : "En espera";
+            salida.println("- ID: " + estudiante.getId() + " | Nombre: " + estudiante.getNombre() 
+                    + " | Puntaje: " + estudiante.getPuntajeSocioeconomico() + " | Estado: " + estado);
+        }
     }
 
     private void mostrarListaEspera() {
-        mostrarEstudiantes("Lista de espera por prioridad", gestor.obtenerListaEspera());
+        salida.println("--- LISTA DE ESPERA (Ordenada por Prioridad) ---");
+        Estudiante[] espera = gestor.obtenerListaEspera();
+        if (espera.length == 0) {
+            salida.println("La lista de espera esta vacia.");
+            return;
+        }
+        int posicion = 1;
+        for (Estudiante e : espera) {
+            salida.println(posicion + ". ID: " + e.getId() + " | Nombre: " + e.getNombre() 
+                    + " | Puntaje: " + e.getPuntajeSocioeconomico());
+            posicion++;
+        }
     }
 
     private void mostrarResidentes() {
-        mostrarEstudiantes("Estudiantes residentes", gestor.obtenerResidentes());
+        salida.println("--- ESTUDIANTES RESIDENTES ---");
+        Estudiante[] residentes = gestor.obtenerResidentes();
+        if (residentes.length == 0) {
+            salida.println("Actualmente no hay estudiantes con residencia asignada.");
+            return;
+        }
+        for (Estudiante e : residentes) {
+            salida.println("- Cupo #" + e.getIdResidencia() + " -> Estudiante: " + e.getNombre() 
+                    + " (ID: " + e.getId() + ", Puntaje: " + e.getPuntajeSocioeconomico() + ")");
+        }
     }
 
     private void mostrarCuposDisponibles() {
-        salida.println("Cupos disponibles: " + gestor.obtenerCuposDisponibles());
+        salida.println("--- ESTADO DE CUPOS DE RESIDENCIA ---");
+        int disponibles = gestor.obtenerCuposDisponibles();
+        int ocupados = gestor.obtenerCuposOcupados();
+        salida.println("Cupos Ocupados   : " + ocupados);
+        salida.println("Cupos Disponibles: " + disponibles);
+        salida.println("Total de Cupos   : " + (disponibles + ocupados));
     }
 
     private void liberarResidencia() {
-        Integer id = leerEntero("ID de la residencia: ");
-        if (id != null) {
-            salida.println(gestor.liberarResidencia(id)
-                    ? "Cupo liberado."
-                    : "No se pudo liberar el cupo. Verifica que exista y esté ocupado.");
+        salida.println("--- LIBERAR RESIDENCIA ---");
+        Integer idResidencia = leerEntero("Ingrese el número (ID) del cupo de residencia a liberar: ");
+        if (idResidencia != null) {
+            boolean liberada = gestor.liberarResidencia(idResidencia);
+            if (liberada) {
+                salida.println("\nResidencia #" + idResidencia + " liberada correctamente.");
+                salida.println("-> El sistema ha asignado automáticamente el cupo al siguiente estudiante con mayor prioridad en espera (si hay uno).");
+            } else {
+                salida.println("\n No se pudo liberar. Verifique que el número de cupo sea válido y que se encuentre ocupado.");
+            }
         }
     }
 
     private void mostrarEstadisticas() {
+        salida.println("--- ESTADÍSTICAS ACTUALES DEL SISTEMA ---");
         int disponibles = gestor.obtenerCuposDisponibles();
         int ocupados = gestor.obtenerCuposOcupados();
         salida.println("Estudiantes registrados: " + gestor.obtenerTodos().length);
-        salida.println("Estudiantes en espera: " + gestor.obtenerListaEspera().length);
-        salida.println("Cupos totales: " + (disponibles + ocupados));
-        salida.println("Cupos ocupados: " + ocupados);
-        salida.println("Cupos disponibles: " + disponibles);
-    }
-
-    private void mostrarEstudiantes(String titulo, Estudiante[] estudiantes) {
-        salida.println(titulo + " (" + estudiantes.length + ")");
-        if (estudiantes.length == 0) {
-            salida.println("No hay estudiantes para mostrar.");
-            return;
-        }
-        for (Estudiante estudiante : estudiantes) {
-            imprimirEstudiante(estudiante);
-        }
-    }
-
-    private void imprimirEstudiante(Estudiante estudiante) {
-        String cupo = estudiante.tieneResidencia()
-                ? "Cupo " + estudiante.getIdResidencia() : "Sin cupo";
-        salida.printf("%s | %s | Puntaje %d | %s%n", estudiante.getId(),
-                estudiante.getNombre(), estudiante.getPuntajeSocioeconomico(), cupo);
+        salida.println("Estudiantes en espera  : " + gestor.obtenerListaEspera().length);
+        salida.println("Total de Cupos         : " + (disponibles + ocupados));
+        salida.println("Cupos ocupados         : " + ocupados);
+        salida.println("Cupos disponibles      : " + disponibles);
     }
 
     private String leerTexto(String mensaje) {
@@ -204,7 +266,7 @@ public class MenuPrincipal {
             if (!texto.isEmpty()) {
                 return texto;
             }
-            salida.println("Este campo no puede estar vacío.");
+            salida.println("[Error] Este campo no puede estar vacío.");
         }
     }
 
@@ -217,7 +279,7 @@ public class MenuPrincipal {
             try {
                 return Integer.valueOf(texto);
             } catch (NumberFormatException ex) {
-                salida.println("Escribe un número entero válido.");
+                salida.println("[Error] Escribe un número entero válido.");
             }
         }
     }
