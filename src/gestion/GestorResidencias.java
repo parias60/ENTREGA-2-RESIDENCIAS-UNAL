@@ -67,13 +67,27 @@ public class GestorResidencias {
     }
 
     public int contarDisponibles() {
-        // Implementacion pendiente
-        return 0;
+    int disponibles = 0;
+
+    for (Residencia residencia : residencias) {
+        if (residencia.estaDisponible()) {
+            disponibles++;
+        }
+    }
+
+    return disponibles;
     }
 
     public int contarOcupados() {
-        // Implementacion pendiente
-        return 0;
+    int ocupados = 0;
+
+    for (Residencia residencia : residencias) {
+        if (!residencia.estaDisponible()) {
+            ocupados++;
+        }
+    }
+
+    return ocupados;
     }
 
     public Residencia[] obtenerResidencias() {
