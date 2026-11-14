@@ -1,102 +1,110 @@
+
 package experimentos;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Locale;
 
-public class Resultados {
+public class Resultados implements AutoCloseable {
 
-    private static class Registro {
+    private BufferedWriter escritor;
 
-        String estructura;
-        String operacion;
-        int cantidad;
-        int repeticion;
-        int operaciones;
-        long tiempoTotal;
-
-        Registro(String estructura, String operacion,
-                int cantidad, int repeticion,
-                int operaciones, long tiempoTotal) {
-
-            this.estructura = estructura;
-            this.operacion = operacion;
-            this.cantidad = cantidad;
-            this.repeticion = repeticion;
-            this.operaciones = operaciones;
-            this.tiempoTotal = tiempoTotal;
-        }
-    }
-
-    private final ArrayList<Registro> registros;
-
-    // Evita que el resultado de una prueba quede sin utilizar.
     private static volatile Object ultimoResultado;
 
+    // Constructor para las pruebas de calentamiento.
+    // No genera ningún archivo CSV.
     public Resultados() {
-        registros = new ArrayList<>();
+        escritor = null;
     }
 
-    public void agregar(String estructura, String operacion,
-            int cantidad, int repeticion,
-            int operaciones, long tiempoTotal) {
+    // Constructor para guardar los resultados en CSV.
+    public Resultados(String nombreArchivo) throws IOException {
 
-        registros.add(new Registro(
-                estructura,
-                operacion,
-                cantidad,
-                repeticion,
-                operaciones,
-                tiempoTotal
-        ));
-    }
-
-    public static void conservar(Object resultado) {
-        ultimoResultado = resultado;
-    }
-
-    public void guardarCSV(String nombreArchivo)
-            throws IOException {
-
-        try (BufferedWriter escritor = Files.newBufferedWriter(
+        escritor = Files.newBufferedWriter(
                 Paths.get(nombreArchivo),
-                StandardCharsets.UTF_8)) {
+                StandardCharsets.UTF_8
+        );
 
-            escritor.write(
-                    "estructura,operacion,cantidad,repeticion,"
-                    + "operaciones,tiempo_total_ns,"
-                    + "tiempo_promedio_ns"
+        escritor.write(
+                "estructura,operacion,cantidad,repeticion,"
+                + "operaciones,tiempo_total_ns,tiempo_promedio_ns"
+        );
+
+        escritor.newLine();
+    }
+
+    public void agregar(
+            String estructura,
+            String operacion,
+            int cantidad,
+            int repeticion,
+            int operaciones,
+            long tiempoTotal) {
+
+        // Durante el calentamiento no se guardan resultados.
+        if (escritor == null) {
+            return;
+        }
+
+        if (operaciones <= 0) {
+            throw new IllegalArgumentException(
+                    "La cantidad de operaciones debe ser mayor que cero."
             );
+        }
+
+        if (tiempoTotal < 0) {
+            throw new IllegalArgumentException(
+                    "El tiempo total no puede ser negativo."
+            );
+        }
+
+        double promedio = (double) tiempoTotal / operaciones;
+
+        try {
+
+            escritor.write(String.format(
+                    Locale.US,
+                    "%s,%s,%d,%d,%d,%d,%.2f",
+                    estructura,
+                    operacion,
+                    cantidad,
+                    repeticion,
+                    operaciones,
+                    tiempoTotal,
+                    promedio
+            ));
 
             escritor.newLine();
 
-            for (Registro r : registros) {
+            // No hacemos flush después de cada registro.
+            // BufferedWriter acumula los datos en memoria.
 
-                double promedio = (double) r.tiempoTotal
-                        / r.operaciones;
+        } catch (IOException e) {
 
-                escritor.write(String.format(
-                        Locale.US,
-                        "%s,%s,%d,%d,%d,%d,%.2f",
-                        r.estructura,
-                        r.operacion,
-                        r.cantidad,
-                        r.repeticion,
-                        r.operaciones,
-                        r.tiempoTotal,
-                        promedio
-                ));
-
-                escritor.newLine();
-            }
+            throw new UncheckedIOException(
+                    "No se pudo guardar el resultado.",
+                    e
+            );
         }
+    }
 
-        System.out.println(
-                "\nResultados guardados en: " + nombreArchivo
-        );
+    public static void conservar(Object resultado) {
+
+        ultimoResultado = resultado;
+    }
+
+    @Override
+    public void close() throws IOException {
+
+        if (escritor != null) {
+
+            escritor.close();
+
+            escritor = null;
+        }
     }
 }

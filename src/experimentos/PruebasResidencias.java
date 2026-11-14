@@ -1,3 +1,4 @@
+
 package experimentos;
 
 import gestion.GestorResidencias;
@@ -6,12 +7,25 @@ import modelos.Estudiante;
 
 public class PruebasResidencias {
 
+    // Máximo de operaciones medidas por prueba y repetición.
+    private static final int MAX_OPERACIONES = 1000;
+
     public static void ejecutar(
             Estudiante[] estudiantes,
             int repeticiones,
             Resultados resultados) {
 
+        if (estudiantes == null || estudiantes.length == 0) {
+            throw new IllegalArgumentException(
+                    "Debe existir al menos un estudiante."
+            );
+        }
+
         int n = estudiantes.length;
+
+        // Se limita la cantidad de operaciones para evitar
+        // experimentos excesivamente largos.
+        int operaciones = Math.min(n, MAX_OPERACIONES);
 
         for (int rep = 1; rep <= repeticiones; rep++) {
 
@@ -19,11 +33,10 @@ public class PruebasResidencias {
             // PRUEBA 1: INICIALIZACIÓN
             // --------------------------------
 
-            GestorResidencias gestor;
-
             long inicio = System.nanoTime();
 
-            gestor = new GestorResidencias(n);
+            GestorResidencias gestor =
+                    new GestorResidencias(n);
 
             long fin = System.nanoTime();
 
@@ -45,14 +58,26 @@ public class PruebasResidencias {
             GestorResidencias gestorBusqueda =
                     new GestorResidencias(n);
 
-            Residencia residencia = null;
+            boolean busquedaCorrecta = true;
+
+            long checksumBusqueda = 0;
 
             inicio = System.nanoTime();
 
-            for (int i = 1; i <= n; i++) {
+            for (int i = 0; i < operaciones; i++) {
 
-                residencia =
-                        gestorBusqueda.buscarPorId(i);
+                int indice = indiceMuestreado(
+                        i, n, operaciones
+                );
+
+                Residencia encontrada =
+                        gestorBusqueda.buscarPorId(indice + 1);
+
+                if (encontrada == null) {
+                    busquedaCorrecta = false;
+                } else {
+                    checksumBusqueda += encontrada.getId();
+                }
             }
 
             fin = System.nanoTime();
@@ -62,11 +87,12 @@ public class PruebasResidencias {
                     "BusquedaPorID",
                     n,
                     rep,
-                    n,
+                    operaciones,
                     fin - inicio
             );
 
-            Resultados.conservar(residencia);
+            Resultados.conservar(busquedaCorrecta);
+            Resultados.conservar(checksumBusqueda);
 
             // --------------------------------
             // PRUEBA 3: BUSCAR CUPO DISPONIBLE
@@ -75,23 +101,40 @@ public class PruebasResidencias {
             GestorResidencias gestorCupos =
                     new GestorResidencias(n);
 
-            // Ocupamos todos menos el último.
-            for (int i = 1; i < n; i++) {
+            Residencia[] cupos =
+                    gestorCupos.obtenerResidencias();
 
-                gestorCupos.asignar(
-                        i,
-                        estudiantes[i - 1].getId()
+            /*
+             * Ocupamos todos los cupos excepto el último.
+             *
+             * La preparación queda fuera del cronómetro.
+             * Así, cada búsqueda debe recorrer prácticamente
+             * todo el arreglo para encontrar el último cupo.
+             */
+
+            for (int i = 0; i < n - 1; i++) {
+
+                cupos[i].asignarEstudiante(
+                        estudiantes[i].getId()
                 );
             }
 
-            Residencia disponible = null;
+            boolean busquedaCupoCorrecta = true;
+
+            long checksumCupos = 0;
 
             inicio = System.nanoTime();
 
-            for (int i = 0; i < n; i++) {
+            for (int i = 0; i < operaciones; i++) {
 
-                disponible =
+                Residencia disponible =
                         gestorCupos.buscarCupoDisponible();
+
+                if (disponible == null) {
+                    busquedaCupoCorrecta = false;
+                } else {
+                    checksumCupos += disponible.getId();
+                }
             }
 
             fin = System.nanoTime();
@@ -101,11 +144,12 @@ public class PruebasResidencias {
                     "BuscarCupoDisponible",
                     n,
                     rep,
-                    n,
+                    operaciones,
                     fin - inicio
             );
 
-            Resultados.conservar(disponible);
+            Resultados.conservar(busquedaCupoCorrecta);
+            Resultados.conservar(checksumCupos);
 
             // --------------------------------
             // PRUEBA 4: ASIGNACIÓN
@@ -118,12 +162,16 @@ public class PruebasResidencias {
 
             inicio = System.nanoTime();
 
-            for (int i = 1; i <= n; i++) {
+            for (int i = 0; i < operaciones; i++) {
+
+                int indice = indiceMuestreado(
+                        i, n, operaciones
+                );
 
                 asignacionCorrecta &=
                         gestorAsignacion.asignar(
-                                i,
-                                estudiantes[i - 1].getId()
+                                indice + 1,
+                                estudiantes[indice].getId()
                         );
             }
 
@@ -134,7 +182,7 @@ public class PruebasResidencias {
                     "Asignacion",
                     n,
                     rep,
-                    n,
+                    operaciones,
                     fin - inicio
             );
 
@@ -147,12 +195,22 @@ public class PruebasResidencias {
             GestorResidencias gestorLiberacion =
                     new GestorResidencias(n);
 
-            // Preparación fuera del tiempo medido.
-            for (int i = 1; i <= n; i++) {
+            Residencia[] cuposLiberacion =
+                    gestorLiberacion.obtenerResidencias();
 
-                gestorLiberacion.asignar(
-                        i,
-                        estudiantes[i - 1].getId()
+            /*
+             * Ocupamos previamente los cupos que se van
+             * a liberar. Esta preparación no se mide.
+             */
+
+            for (int i = 0; i < operaciones; i++) {
+
+                int indice = indiceMuestreado(
+                        i, n, operaciones
+                );
+
+                cuposLiberacion[indice].asignarEstudiante(
+                        estudiantes[indice].getId()
                 );
             }
 
@@ -160,10 +218,14 @@ public class PruebasResidencias {
 
             inicio = System.nanoTime();
 
-            for (int i = 1; i <= n; i++) {
+            for (int i = 0; i < operaciones; i++) {
+
+                int indice = indiceMuestreado(
+                        i, n, operaciones
+                );
 
                 liberacionCorrecta &=
-                        gestorLiberacion.liberar(i);
+                        gestorLiberacion.liberar(indice + 1);
             }
 
             fin = System.nanoTime();
@@ -173,7 +235,7 @@ public class PruebasResidencias {
                     "Liberacion",
                     n,
                     rep,
-                    n,
+                    operaciones,
                     fin - inicio
             );
 
@@ -182,6 +244,27 @@ public class PruebasResidencias {
 
         System.out.println(
                 "Pruebas de residencias finalizadas para n = " + n
+        );
+    }
+
+    /*
+     * Selecciona posiciones distribuidas uniformemente
+     * a lo largo del arreglo.
+     *
+     * Cuando se utiliza una sola operación, selecciona
+     * la primera posición.
+     */
+    private static int indiceMuestreado(
+            int i,
+            int n,
+            int operaciones) {
+
+        if (operaciones == 1) {
+            return 0;
+        }
+
+        return (int) (
+                (long) i * (n - 1) / (operaciones - 1)
         );
     }
 }

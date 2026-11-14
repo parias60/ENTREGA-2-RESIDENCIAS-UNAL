@@ -1,3 +1,4 @@
+
 package experimentos;
 
 import estructuras.AVLestudiantes;
@@ -10,20 +11,26 @@ public class PruebasAVL {
             int repeticiones,
             Resultados resultados) {
 
+        if (estudiantes == null || estudiantes.length == 0) {
+            throw new IllegalArgumentException(
+                    "Debe existir al menos un estudiante."
+            );
+        }
+
         int n = estudiantes.length;
 
         for (int rep = 1; rep <= repeticiones; rep++) {
 
-            // --------------------------------
-            // PRUEBA 1: INSERCIÓN
-            // --------------------------------
+            // =====================================
+            // PRUEBA 1: INSERCION
+            // =====================================
 
             AVLestudiantes arbolInsercion =
                     new AVLestudiantes();
 
-            long inicio = System.nanoTime();
-
             boolean insercionCorrecta = true;
+
+            long inicio = System.nanoTime();
 
             for (Estudiante estudiante : estudiantes) {
                 insercionCorrecta &=
@@ -42,23 +49,35 @@ public class PruebasAVL {
             );
 
             Resultados.conservar(insercionCorrecta);
+            Resultados.conservar(
+                    arbolInsercion.obtenerTamanio() == n
+            );
 
-            // --------------------------------
-            // PRUEBA 2: BÚSQUEDA
-            // --------------------------------
 
+            // =====================================
+            // PRUEBA 2: BUSQUEDA
+            // =====================================
+
+            // La construcción no forma parte del tiempo medido.
             AVLestudiantes arbolBusqueda =
                     construirArbol(estudiantes);
 
-            Estudiante encontrado = null;
+            boolean busquedaCorrecta = true;
+            long checksumBusqueda = 0;
 
             inicio = System.nanoTime();
 
             for (Estudiante estudiante : estudiantes) {
 
-                encontrado = arbolBusqueda.buscar(
-                        estudiante.getId()
-                );
+                Estudiante encontrado =
+                        arbolBusqueda.buscar(estudiante.getId());
+
+                if (encontrado == null) {
+                    busquedaCorrecta = false;
+                } else {
+                    checksumBusqueda +=
+                            encontrado.getId().hashCode();
+                }
             }
 
             fin = System.nanoTime();
@@ -72,12 +91,15 @@ public class PruebasAVL {
                     fin - inicio
             );
 
-            Resultados.conservar(encontrado);
+            Resultados.conservar(busquedaCorrecta);
+            Resultados.conservar(checksumBusqueda);
 
-            // --------------------------------
-            // PRUEBA 3: ELIMINACIÓN
-            // --------------------------------
 
+            // =====================================
+            // PRUEBA 3: ELIMINACION
+            // =====================================
+
+            // La construcción no forma parte del tiempo medido.
             AVLestudiantes arbolEliminacion =
                     construirArbol(estudiantes);
 
@@ -105,11 +127,16 @@ public class PruebasAVL {
             );
 
             Resultados.conservar(eliminacionCorrecta);
+            Resultados.conservar(
+                    arbolEliminacion.obtenerTamanio() == 0
+            );
 
-            // --------------------------------
-            // PRUEBA 4: RECORRIDO
-            // --------------------------------
 
+            // =====================================
+            // PRUEBA 4: RECORRIDO EN ORDEN
+            // =====================================
+
+            // La construcción no forma parte del tiempo medido.
             AVLestudiantes arbolRecorrido =
                     construirArbol(estudiantes);
 
@@ -130,7 +157,37 @@ public class PruebasAVL {
                     fin - inicio
             );
 
-            Resultados.conservar(recorrido);
+            // Validaciones fuera del tiempo medido.
+            boolean recorridoCorrecto =
+                    recorrido != null && recorrido.length == n;
+
+            long checksumRecorrido = 0;
+
+            if (recorridoCorrecto) {
+
+                for (int i = 0; i < recorrido.length; i++) {
+
+                    if (recorrido[i] == null) {
+                        recorridoCorrecto = false;
+                        break;
+                    }
+
+                    checksumRecorrido +=
+                            recorrido[i].getId().hashCode();
+
+                    if (i > 0 &&
+                            recorrido[i - 1].getId().compareTo(
+                                    recorrido[i].getId()
+                            ) >= 0) {
+
+                        recorridoCorrecto = false;
+                        break;
+                    }
+                }
+            }
+
+            Resultados.conservar(recorridoCorrecto);
+            Resultados.conservar(checksumRecorrido);
         }
 
         System.out.println(
@@ -138,6 +195,8 @@ public class PruebasAVL {
         );
     }
 
+
+    // Construye un árbol sin incluir ese tiempo en las mediciones.
     private static AVLestudiantes construirArbol(
             Estudiante[] estudiantes) {
 

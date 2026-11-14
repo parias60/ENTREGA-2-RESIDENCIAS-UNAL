@@ -1,9 +1,15 @@
+
 package experimentos;
 
 import estructuras.AVLprioridad;
 import modelos.Estudiante;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Random;
 
 public class PruebasPrioridad {
+
+    private static final int CANTIDAD_ARBOLES_CONSULTA = 4;
 
     public static void ejecutar(
             Estudiante[] estudiantes,
@@ -18,8 +24,7 @@ public class PruebasPrioridad {
             // PRUEBA 1: INSERCIÓN
             // --------------------------------
 
-            AVLprioridad arbolInsercion =
-                    new AVLprioridad();
+            AVLprioridad arbolInsercion = new AVLprioridad();
 
             boolean correcto = true;
 
@@ -27,9 +32,7 @@ public class PruebasPrioridad {
 
             for (Estudiante estudiante : estudiantes) {
 
-                correcto &= arbolInsercion.insertar(
-                        estudiante
-                );
+                correcto &= arbolInsercion.insertar(estudiante);
             }
 
             long fin = System.nanoTime();
@@ -49,17 +52,47 @@ public class PruebasPrioridad {
             // PRUEBA 2: CONSULTAR PRIORIDAD
             // --------------------------------
 
-            AVLprioridad arbolConsulta =
-                    construirArbol(estudiantes);
+            /*
+             * Se construyen cuatro árboles con los mismos estudiantes,
+             * pero con diferentes órdenes de inserción.
+             *
+             * La construcción se realiza fuera del tiempo medido.
+             */
 
-            Estudiante prioritario = null;
+            AVLprioridad[] arbolesConsulta =
+                    new AVLprioridad[CANTIDAD_ARBOLES_CONSULTA];
+
+            for (int i = 0; i < CANTIDAD_ARBOLES_CONSULTA; i++) {
+
+                Estudiante[] orden = estudiantes.clone();
+
+                Collections.shuffle(
+                        Arrays.asList(orden),
+                        new Random(12345L + rep * 31L + i)
+                );
+
+                arbolesConsulta[i] = construirArbol(orden);
+            }
+
+            long checksumConsulta = 0;
+
+            int indiceArbol = 0;
 
             inicio = System.nanoTime();
 
             for (int i = 0; i < n; i++) {
 
-                prioritario =
-                        arbolConsulta.obtenerMayorPrioridad();
+                Estudiante prioritario =
+                        arbolesConsulta[indiceArbol]
+                                .obtenerMayorPrioridad();
+
+                checksumConsulta += prioritario.getId().hashCode();
+
+                indiceArbol++;
+
+                if (indiceArbol == CANTIDAD_ARBOLES_CONSULTA) {
+                    indiceArbol = 0;
+                }
             }
 
             fin = System.nanoTime();
@@ -73,7 +106,7 @@ public class PruebasPrioridad {
                     fin - inicio
             );
 
-            Resultados.conservar(prioritario);
+            Resultados.conservar(checksumConsulta);
 
             // --------------------------------
             // PRUEBA 3: EXTRAER PRIORIDAD
@@ -82,14 +115,16 @@ public class PruebasPrioridad {
             AVLprioridad arbolExtraccion =
                     construirArbol(estudiantes);
 
-            prioritario = null;
+            long checksumExtraccion = 0;
 
             inicio = System.nanoTime();
 
             for (int i = 0; i < n; i++) {
 
-                prioritario =
+                Estudiante prioritario =
                         arbolExtraccion.extraerMayorPrioridad();
+
+                checksumExtraccion += prioritario.getId().hashCode();
             }
 
             fin = System.nanoTime();
@@ -103,44 +138,49 @@ public class PruebasPrioridad {
                     fin - inicio
             );
 
-            Resultados.conservar(prioritario);
+            Resultados.conservar(checksumExtraccion);
+
+            // Comprobación posterior a la medición.
+            Resultados.conservar(
+                    arbolExtraccion.obtenerTamanio() == 0
+            );
 
             // --------------------------------
             // PRUEBA 4: ELIMINACIÓN
             // --------------------------------
 
-            // --------------------------------
-// PRUEBA 4: ELIMINACIÓN
-// --------------------------------
+            AVLprioridad arbolEliminacion =
+                    construirArbol(estudiantes);
 
-AVLprioridad arbolEliminacion =
-        construirArbol(estudiantes);
+            boolean eliminacionCorrecta = true;
 
-boolean eliminacionCorrecta = true;
+            inicio = System.nanoTime();
 
-inicio = System.nanoTime();
+            for (Estudiante estudiante : estudiantes) {
 
-for (Estudiante estudiante : estudiantes) {
+                eliminacionCorrecta &=
+                        arbolEliminacion.eliminar(
+                                estudiante.getPuntajeSocioeconomico(),
+                                estudiante.getId()
+                        );
+            }
 
-    eliminacionCorrecta &=
-            arbolEliminacion.eliminar(
-                    estudiante.getPuntajeSocioeconomico(),
-                    estudiante.getId()
+            fin = System.nanoTime();
+
+            resultados.agregar(
+                    "AVLPrioridad",
+                    "Eliminacion",
+                    n,
+                    rep,
+                    n,
+                    fin - inicio
             );
-}
 
-fin = System.nanoTime();
+            Resultados.conservar(eliminacionCorrecta);
 
-resultados.agregar(
-        "AVLPrioridad",
-        "Eliminacion",
-        n,
-        rep,
-        n,
-        fin - inicio
-);
-
-Resultados.conservar(eliminacionCorrecta);
+            Resultados.conservar(
+                    arbolEliminacion.obtenerTamanio() == 0
+            );
 
             // --------------------------------
             // PRUEBA 5: RECORRIDO
