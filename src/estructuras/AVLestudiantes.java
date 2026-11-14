@@ -130,53 +130,78 @@ public class AVLestudiantes {
     
     public boolean insertar(Estudiante estudiante) {
         if (estudiante == null || estudiante.getId() == null){ return false;}
-        if (contiene(estudiante.getId())) {return false;}
-        
+       
+        int tamanioAnterior = tamanio;
+
         raiz = insertRec(raiz, estudiante);
-        tamanio++;
-        return true;
+
+        return tamanio > tamanioAnterior;
+
     }
     
-    private Nodo insertRec(Nodo n, Estudiante estudiante){
-        if(n == null){return new Nodo(estudiante);}
-        
-        
-        int comparacion = estudiante.getId().compareTo(n.estudiante.getId()); //compara el estudiante que ya está en n, y el que se va a ingresar
-        if(comparacion < 0){
-            n.izquierdo = insertRec(n.izquierdo, estudiante);
-        }else if(comparacion > 0){
-            n.derecho = insertRec(n.derecho, estudiante);
-        }else{
-            return n; // si hay repetido
-        }
-        
-        actualizarAltura(n);
-        int balance = factorBalance(n);
+        private Nodo insertRec(Nodo n, Estudiante estudiante) {
 
-        // Rotaciones
-        
-        //LL
-        if (balance > 1 && estudiante.getId().compareTo(n.izquierdo.estudiante.getId()) < 0)
-            return rotarDerecha(n);
-        //RR
-        if (balance < -1 && estudiante.getId().compareTo(n.derecho.estudiante.getId()) > 0)
-            return rotarIzquierda(n);
-        
-        
-        //LR
-        if (balance > 1 && estudiante.getId().compareTo(n.izquierdo.estudiante.getId()) > 0) {
-            n.izquierdo = rotarIzquierda(n.izquierdo);
-            return rotarDerecha(n);
-        }
-        
-        //RL
-        if (balance < -1 && estudiante.getId().compareTo(n.derecho.estudiante.getId()) < 0) {
-            n.derecho = rotarDerecha(n.derecho);
-            return rotarIzquierda(n);
-        }
+    if (n == null) {
+        tamanio++;
+        return new Nodo(estudiante);
+    }
 
+    int comparacion = estudiante.getId().compareTo(
+            n.estudiante.getId()
+    );
+
+    if (comparacion < 0) {
+        n.izquierdo = insertRec(n.izquierdo, estudiante);
+
+    } else if (comparacion > 0) {
+        n.derecho = insertRec(n.derecho, estudiante);
+
+    } else {
         return n;
     }
+
+    actualizarAltura(n);
+
+    int balance = factorBalance(n);
+
+    // LL
+    if (balance > 1 &&
+            estudiante.getId().compareTo(
+                    n.izquierdo.estudiante.getId()
+            ) < 0) {
+        return rotarDerecha(n);
+    }
+
+    // RR
+    if (balance < -1 &&
+            estudiante.getId().compareTo(
+                    n.derecho.estudiante.getId()
+            ) > 0) {
+        return rotarIzquierda(n);
+    }
+
+    // LR
+    if (balance > 1 &&
+            estudiante.getId().compareTo(
+                    n.izquierdo.estudiante.getId()
+            ) > 0) {
+
+        n.izquierdo = rotarIzquierda(n.izquierdo);
+        return rotarDerecha(n);
+    }
+
+    // RL
+    if (balance < -1 &&
+            estudiante.getId().compareTo(
+                    n.derecho.estudiante.getId()
+            ) < 0) {
+
+        n.derecho = rotarDerecha(n.derecho);
+        return rotarIzquierda(n);
+    }
+
+    return n;
+}
 
     public Estudiante buscar(String id) {
         Nodo resultado = buscarRec(raiz, id);
