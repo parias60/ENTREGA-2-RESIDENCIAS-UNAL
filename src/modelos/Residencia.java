@@ -30,9 +30,17 @@ public class Residencia {
         return idEstudiante == null;
     }
 
-    public void asignarEstudiante(String idEstudiante) {
-        //FALTA IMPLEMENTAR
-        this.idEstudiante = idEstudiante;
+    public boolean asignarEstudiante(String idEstudiante) {
+    if (idEstudiante == null || idEstudiante.trim().isEmpty()) {
+        return false;
+    }
+
+    if (!estaDisponible()) {
+        return false;
+    }
+
+    this.idEstudiante = idEstudiante;
+    return true;
     }
 
     public void liberar() {
