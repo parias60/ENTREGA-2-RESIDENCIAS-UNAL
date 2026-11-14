@@ -10,6 +10,7 @@ import modelos.Estudiante;
  * @author danie
  */
 public class AVLestudiantes {
+
     
     
     //NODO DEFINICION
@@ -120,24 +121,161 @@ public class AVLestudiantes {
     
     
     
-    public boolean insertar(Estudiante estudiante) {
-        // Implementacion pendiente
-        return false;
+    
+    
+    
+    
+    
+    //MODIFICACION/BUSQUEDA EN EL ARBOL
+    
+    public boolean insert(Estudiante estudiante) {
+        if (estudiante == null || estudiante.getId() == null){ return false;}
+        if (contiene(estudiante.getId())) {return false;}
+        
+        raiz = insertRec(raiz, estudiante);
+        tamanio++;
+        return true;
+    }
+    
+    private Nodo insertRec(Nodo n, Estudiante estudiante){
+        if(n == null){return new Nodo(estudiante);}
+        
+        
+        int comparacion = estudiante.getId().compareTo(n.estudiante.getId()); //compara el estudiante que ya está en n, y el que se va a ingresar
+        if(comparacion < 0){
+            n.izquierdo = insertRec(n.izquierdo, estudiante);
+        }else if(comparacion > 0){
+            n.derecho = insertRec(n.derecho, estudiante);
+        }else{
+            return n; // si hay repetido
+        }
+        
+        actualizarAltura(n);
+        int balance = factorBalance(n);
+
+        // Rotaciones
+        
+        //LL
+        if (balance > 1 && estudiante.getId().compareTo(n.izquierdo.estudiante.getId()) < 0)
+            return rotarDerecha(n);
+        //RR
+        if (balance < -1 && estudiante.getId().compareTo(n.derecho.estudiante.getId()) > 0)
+            return rotarIzquierda(n);
+        
+        
+        //LR
+        if (balance > 1 && estudiante.getId().compareTo(n.izquierdo.estudiante.getId()) > 0) {
+            n.izquierdo = rotarIzquierda(n.izquierdo);
+            return rotarDerecha(n);
+        }
+        
+        //RL
+        if (balance < -1 && estudiante.getId().compareTo(n.derecho.estudiante.getId()) < 0) {
+            n.derecho = rotarDerecha(n.derecho);
+            return rotarIzquierda(n);
+        }
+
+        return n;
     }
 
     public Estudiante buscar(String id) {
-        // Implementacion pendiente
-        return null;
+        Nodo resultado = buscarRec(raiz, id);
+        
+        
+        if(resultado == null){return null;}else{return resultado.estudiante;}
+    }
+    
+    private Nodo buscarRec(Nodo n, String id) {
+        if (n == null || n.estudiante.getId().equals(id)) {
+            return n;
+        }
+        if (id.compareTo(n.estudiante.getId()) < 0) {
+            return buscarRec(n.izquierdo, id);
+        }
+        
+        
+        return buscarRec(n.derecho, id);
+        
     }
 
     public boolean eliminar(String id) {
-        // Implementacion pendiente
-        return false;
+        if(!contiene(id)){return false;}
+        raiz = eliminarRec(raiz, id);
+        tamanio--;
+        return true;
     }
+    
+    private Nodo eliminarRec(Nodo n, String id) {
+        if(n == null){return null;}
+        
+        int comparacion = id.compareTo(raiz.estudiante.getId());
+        if (comparacion < 0) {
+            n.izquierdo = eliminarRec(n.izquierdo, id);
+        } else if (comparacion > 0) {
+            n.derecho = eliminarRec(n.derecho, id);
+        } else {
+            if ((n.izquierdo == null) || (n.derecho == null)) {
+                Nodo temp = (n.izquierdo != null) ? n.izquierdo : n.derecho;
+                if (temp == null) {
+                    n = null;
+                } else {
+                    n = temp;
+                }
+            } else {
+                Nodo temp = obtenerMinimoNodo(n.derecho);
+                n.estudiante = temp.estudiante;
+                n.derecho = eliminarRec(n.derecho, temp.estudiante.getId());
+            }
+        }
+
+        if (n == null) return null;
+
+        actualizarAltura(n);
+        int balance = factorBalance(n);
+        
+        //LL
+
+        if (balance > 1 && factorBalance(n.izquierdo) >= 0){
+            return rotarDerecha(n);
+        }
+        
+        //RR
+         if (balance < -1 && factorBalance(n.derecho) <= 0){
+            return rotarIzquierda(n);
+        }
+
+        //LR
+        if (balance > 1 && factorBalance(n.izquierdo) < 0) {
+            n.izquierdo = rotarIzquierda(n.izquierdo);
+            return rotarDerecha(n);
+        }
+
+       
+        //RL
+        if (balance < -1 && factorBalance(n.derecho) > 0) {
+            n.derecho = rotarDerecha(n.derecho);
+            return rotarIzquierda(n);
+        }
+
+        return n;
+    }
+    
+    
+    
+    private Nodo obtenerMinimoNodo(Nodo n) {
+        Nodo aux = n;
+        
+        while(aux.izquierdo != null){
+            aux = aux.izquierdo;
+            
+        }
+        return aux;
+    }
+    
 
     public boolean contiene(String id) {
-        // Implementacion pendiente
-        return false;
+        return buscar(id) != null;
+       
     }
 
     public Estudiante[] obtenerEnOrden() {
@@ -149,15 +287,5 @@ public class AVLestudiantes {
         return tamanio;
     }
 
-    // Metodos auxiliares privados:
-    // altura()
-    // actualizarAltura()
-    // factorEquilibrio()
-    // rotarIzquierda()
-    // rotarDerecha()
-    // insertarRecursivo()
-    // buscarRecursivo()
-    // eliminarRecursivo()
-    // recorrerEnOrden()
 
 }
