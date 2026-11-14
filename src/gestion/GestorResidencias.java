@@ -13,40 +13,81 @@ public class GestorResidencias {
     private Residencia[] residencias;
 
     public GestorResidencias(int cantidadCupos) {
-        // Inicializar arreglo de residencias
+    if (cantidadCupos < 0) {
+        throw new IllegalArgumentException(
+            "La cantidad de cupos no puede ser negativa."
+        );
+    }
+
+    residencias = new Residencia[cantidadCupos];
+
+    for (int i = 0; i < cantidadCupos; i++) {
+        residencias[i] = new Residencia(i + 1);
+        }
     }
 
     public Residencia buscarCupoDisponible() {
-        // Implementacion pendiente
-        return null;
+    for (Residencia residencia : residencias) {
+        if (residencia.estaDisponible()) {
+            return residencia;
+        }
+    }
+
+    return null;
     }
 
     public Residencia buscarPorId(int id) {
-        // Implementacion pendiente
-        return null;
+    for (Residencia residencia : residencias) {
+        if (residencia.getId() == id) {
+            return residencia;
+        }
     }
 
-    public boolean asignar(
-        int idResidencia,
-        String idEstudiante
-    ) {
-        // Implementacion pendiente
+    return null;
+    }
+
+    public boolean asignar(int idResidencia, String idEstudiante) {
+    Residencia residencia = buscarPorId(idResidencia);
+
+    if (residencia == null) {
         return false;
+    }
+
+    return residencia.asignarEstudiante(idEstudiante);
     }
 
     public boolean liberar(int idResidencia) {
-        // Implementacion pendiente
+    Residencia residencia = buscarPorId(idResidencia);
+
+    if (residencia == null) {
         return false;
     }
 
+    return residencia.liberar();
+    }
+
     public int contarDisponibles() {
-        // Implementacion pendiente
-        return 0;
+    int disponibles = 0;
+
+    for (Residencia residencia : residencias) {
+        if (residencia.estaDisponible()) {
+            disponibles++;
+        }
+    }
+
+    return disponibles;
     }
 
     public int contarOcupados() {
-        // Implementacion pendiente
-        return 0;
+    int ocupados = 0;
+
+    for (Residencia residencia : residencias) {
+        if (!residencia.estaDisponible()) {
+            ocupados++;
+        }
+    }
+
+    return ocupados;
     }
 
     public Residencia[] obtenerResidencias() {
