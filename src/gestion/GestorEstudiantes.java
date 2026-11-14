@@ -1,14 +1,14 @@
 package gestion;
 
-import estructuras.AVLEstudiantes;
-import estructuras.AVLPrioridad;
+import estructuras.AVLestudiantes;
+import estructuras.AVLprioridad;
 import modelos.Estudiante;
 
 /** Administra los indices por identificador y por prioridad de espera. */
 public class GestorEstudiantes {
 
-    private final AVLEstudiantes arbolEstudiantes = new AVLEstudiantes();
-    private final AVLPrioridad arbolPrioridad = new AVLPrioridad();
+    private final AVLestudiantes arbolEstudiantes = new AVLestudiantes();
+    private final AVLprioridad arbolPrioridad = new AVLprioridad();
 
     public boolean registrar(Estudiante estudiante) {
         return estudiante != null && estudiante.getId() != null
