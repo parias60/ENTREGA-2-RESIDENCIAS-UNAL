@@ -46,17 +46,24 @@ public class GestorResidencias {
     return null;
     }
 
-    public boolean asignar(
-        int idResidencia,
-        String idEstudiante
-    ) {
-        // Implementacion pendiente
+    public boolean asignar(int idResidencia, String idEstudiante) {
+    Residencia residencia = buscarPorId(idResidencia);
+
+    if (residencia == null) {
         return false;
     }
 
+    return residencia.asignarEstudiante(idEstudiante);
+    }
+
     public boolean liberar(int idResidencia) {
-        // Implementacion pendiente
+    Residencia residencia = buscarPorId(idResidencia);
+
+    if (residencia == null) {
         return false;
+    }
+
+    return residencia.liberar();
     }
 
     public int contarDisponibles() {
