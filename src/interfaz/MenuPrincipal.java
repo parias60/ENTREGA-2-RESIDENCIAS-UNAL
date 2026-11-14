@@ -94,7 +94,7 @@ public class MenuPrincipal {
         boolean exito = gestor.registrarEstudiante(estudiante);
 
         if (exito) {
-            salida.println("\n[Éxito] Estudiante registrado correctamente.");
+            salida.println("\n Estudiante registrado correctamente.");
             if (estudiante.tieneResidencia()) {
                 salida.println("-> Se le ha asignado el cupo de residencia #" + estudiante.getIdResidencia());
             } else {
@@ -113,7 +113,7 @@ public class MenuPrincipal {
         }
         Estudiante estudiante = gestor.buscarEstudiante(id);
         if (estudiante == null) {
-            salida.println("\n[Aviso] No se encontró ningún estudiante con el ID '" + id + "'.");
+            salida.println("\nNo se encontró ningún estudiante con el ID '" + id + "'.");
         } else {
             salida.println("\n[Estudiante Encontrado]");
             salida.println("ID: " + estudiante.getId());
