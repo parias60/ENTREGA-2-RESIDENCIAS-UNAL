@@ -115,7 +115,7 @@ public class GestorSistema {
             return false;
         }
         Estudiante titular = buscarEstudiante(residencia.getIdEstudiante());
-        if (titular == null || !Integer.valueOf(idResidencia).equals(titular.getIdResidencia())
+        if (titular == null || !String.valueOf(idResidencia).equals(titular.getIdResidencia())
                 || !gestorResidencias.liberar(idResidencia)) {
             return false;
         }
